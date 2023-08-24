@@ -1,5 +1,9 @@
 // -----------------------------------mbox.h -------------------------------------
 #include "gpio.h"
+
+#ifndef SRC_MAILBOX_H_
+#define SRC_MAILBOX_H_
+
 /* a properly aligned buffer */
 extern volatile unsigned int mBuf[36];
 #define ADDR(X) (unsigned int)((unsigned long) X)
@@ -33,7 +37,12 @@ extern volatile unsigned int mBuf[36];
 /* tags */
 #define MBOX_TAG_GETSERIAL 0x00010004 //Get board serial
 #define MBOX_TAG_GETMODEL 0x00010001 //Get board model
+#define MBOX_TAG_GETMACADD 0x00010003 //Get board MAC ADDRESS
 #define MBOX_TAG_SETCLKRATE 0x00038002
 #define MBOX_TAG_LAST 0
 /* Function Prototypes */
 int mbox_call(unsigned int buffer_addr, unsigned char channel);
+void board_revision();
+void board_mac_address();
+
+#endif

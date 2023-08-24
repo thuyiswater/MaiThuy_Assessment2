@@ -21,6 +21,41 @@ volatile unsigned int __attribute__((aligned(16))) mBuf[36];
 /**
  * Read from the mailbox
  */
+
+void board_revision() {
+    mBuf[0] = 7 * 4;
+    mBuf[1] = MBOX_REQUEST;
+    mBuf[2] = 0x00010002;
+    mBuf[3] = 4;
+    mBuf[5] = 0;
+    mBuf[6] = 0;
+    mBuf[7] = MBOX_TAG_LAST;
+
+    if(mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
+        uart_puts("\nBoard revision: ");
+        uart_hex(mBuf[5]);
+        uart_puts("\n");
+    } else {
+        uart_puts("INVALID\n");
+    }
+}
+
+void board_mac_address() {
+    mBuf[0] = 7 * 4;
+    mBuf[1] = MBOX_REQUEST;
+    mBuf[2] = MBOX_TAG_GETMACADD;
+    mBuf[3] = 6;
+    mBuf[4] = 0;
+    mBuf[6] = MBOX_TAG_LAST;
+
+    if(mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
+        uart_puts("\nBoard MAC address: ");
+        uart_hex(mBuf[5]);
+    } else {
+        uart_puts("INVALID\n");
+    }
+}
+
 uint32_t mailbox_read(unsigned char channel)
 {
     // Receiving message is buffer_addr & channel number
