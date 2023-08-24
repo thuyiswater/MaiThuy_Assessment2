@@ -13,5 +13,5 @@ int compare_color(char *str1, char *str2);
 int get_colorset(char *str1);
 int set_color(char* str);
 void color_arr(int color_index);
-
+void print_list();
 #endif

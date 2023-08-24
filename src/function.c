@@ -1,5 +1,13 @@
 #include "uart.h"
 #include "mbox.h"
+#include "printf.h"
+
+#define MAX_HISTORY_SIZE 10
+#define MAX_COMMAND_LENGTH 50
+
+char history[MAX_HISTORY_SIZE][MAX_COMMAND_LENGTH];
+int historyIndex = 0;
+int historyCount = 0;
 
 void reset_str(char* ar) {
     while (*ar != '\n'){
@@ -93,7 +101,7 @@ void help_info(int help_type) {
         uart_puts("\nCommand: setcolor -t <text color> -b <background color>\n");
         uart_puts("Set text color, and/or background color of the console to one of the following colors: BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE\n");
         uart_puts("Example: thuyiswater> setcolor -t yellow\n");
-        uart_puts("\t\t\tsetcolor -b yellow -t white\n");
+        uart_puts("\t\tthuyiswater> setcolor -b yellow -t white\n");
     }
     if(help_type == 4) {
         uart_puts("\nCommand: showinfo\n");
@@ -243,4 +251,35 @@ void color_arr(int color_index) {
     if(background_index != 8) {
         uart_puts(background[background_index]);
     }
+}
+
+void addToHistory(const char *command) {
+    if (historyCount < MAX_HISTORY_SIZE) {
+        for (int i = 0; i < MAX_COMMAND_LENGTH; i++) {
+            history[historyCount][i] = command[i];
+            if (command[i] == '\0') {
+                break;
+            }
+        }
+        historyCount++;
+    } else {
+        for (int i = 0; i < MAX_HISTORY_SIZE - 1; i++) {
+            for (int j = 0; j < MAX_COMMAND_LENGTH; j++) {
+                history[i][j] = history[i + 1][j];
+            }
+        }
+        for (int i = 0; i < MAX_COMMAND_LENGTH; i++) {
+            history[MAX_HISTORY_SIZE - 1][i] = command[i];
+            if (command[i] == '\0') {
+                break;
+            }
+        }
+    }
+}
+
+void print_list() {
+    printf("\n");
+
+    //print int %d
+    printf("%d > %d\n", 10, 2);
 }

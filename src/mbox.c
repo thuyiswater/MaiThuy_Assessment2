@@ -56,6 +56,8 @@ void board_mac_address() {
     }
 }
 
+// void mbox_buffer_setup(unsigned int buffer_addr, unsigned int tag_identifier, unsigned int **res_data, unsigned int res_length, unsigned int req_length, unsigned int [list of request values])
+
 uint32_t mailbox_read(unsigned char channel)
 {
     // Receiving message is buffer_addr & channel number
