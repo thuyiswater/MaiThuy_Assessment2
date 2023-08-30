@@ -4,7 +4,15 @@
 
 #define MAX_HISTORY_SIZE 10
 #define MAX_COMMAND_LENGTH 50
-
+#define MAX_INPUT_SIZE 256
+// #define NUM_COMMAND 5
+const char commands[][MAX_INPUT_SIZE] = {
+        "help",
+        "clear",
+        "setcolor",
+        "showinfo",
+        "printf"
+};
 char history[MAX_HISTORY_SIZE][MAX_COMMAND_LENGTH];
 int historyIndex = 0;
 int historyCount = 0;
@@ -253,6 +261,55 @@ void color_arr(int color_index) {
     }
 }
 
+char* copyString(char *destination, const char *source, int maxSize) {
+    char *origin = destination;
+
+    while(maxSize > 0 && *source != '\0') {
+        *destination++ = *source++;
+        maxSize--;
+    }
+
+    while(maxSize > 0) {
+        *destination++ = '\0';
+        maxSize--;
+    }
+    return origin;
+}
+
+int count_length(char *s) {
+    int n = 0;
+    while(s[n] != '\0') {
+        n += 1;
+    }
+    return n;
+}
+// int compare_length(char *str1, char str *str2) {
+//     int length1 = count_length(str1);
+//     int length2 = count_length(str2);
+
+//     int similar_len = length1 > length2 ? length2 : length1;
+//     int match = 0;
+
+//     for(int i = 0; i < similar_len; i++) {
+//         if(str1[i] == str2) {
+//             match++;
+//         }
+//     }
+//     return (int) match / similar_len * 100.0;
+// }
+
+// int tab_completion(char *cmd) {
+//     int n = 0;
+//     int match = -1;
+
+//     for(int i = 0; i < 5; i++) {
+//         int compare_match = compare_length(cmd, commands[i]);
+//         if(compare_match == 100) {
+//             n = compare_match
+//         }
+//     }
+// }
+
 void addToHistory(const char *command) {
     if (historyCount < MAX_HISTORY_SIZE) {
         for (int i = 0; i < MAX_COMMAND_LENGTH; i++) {
@@ -283,4 +340,28 @@ void print_list() {
 
 		printf("%d is higher than %d\n ", 6, 4);
 		printf("Hello %0d\n", 16);
+
+        //Print character
+		printf("\nCharacter: %c\n", 'd');
+
+		//print hex
+		printf("\nHex number: %x\n", 921);
+		printf("Hex number: %d\n", -156);
+		printf("Hex number: %d\n", -46.67);
+
+		//print float
+		printf("\nFloat number: %f\n", 44667.00076004);
+
+		//float and flag and precision and width
+		printf("Float number: %10.3f\n", 67.5 );
+		printf("Float number: %10.3f\n", -67.5 );
+
+		//Print string and flag and width
+		printf("\nString: %s\n", "thuyiswater");
+
+		//Print hexadecimal and flag and width
+		printf ("\nHex number: %x \n", 7562);
+
+		//print %
+		printf ("\nUsing %%f: %f\n", 1234.56789);
 }

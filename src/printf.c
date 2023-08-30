@@ -76,9 +76,9 @@ void printf(char *string,...) {
 
 			int formatted_ind = 0;
 			int end = -1; 
-			int hold_number = 0;
+			int precision = 0;
 			int i = 0 ;
-			int flag_nega = 0;
+			int is_negative = 0;
 
 			// Extract decimal precision and width from specifier
 			while(i < (sp_index - 1)){
@@ -87,7 +87,7 @@ void printf(char *string,...) {
 					i++;
 					while(('0' <= buff_specifier[i] && buff_specifier[i] <= '9')
 						&& i < (sp_index - 1)){
-						hold_number = hold_number ==0 ? (buff_specifier[i] - 48) : hold_number*10+(buff_specifier[i] - 48);
+						precision = precision ==0 ? (buff_specifier[i] - 48) : precision*10+(buff_specifier[i] - 48);
 						i++;
 					}
 				}
@@ -121,7 +121,7 @@ void printf(char *string,...) {
 				int temp_index = MAX_PRINT_SIZE - 1;
 
 				if(x < 0){
-					flag_nega = 1;
+					is_negative = 1;
 					x *= (-1);
 				}
 
@@ -136,7 +136,7 @@ void printf(char *string,...) {
 				for(int i = temp_index + 1; i < MAX_PRINT_SIZE; i++) {
 					
 					if(i == temp_index + 1){
-						for (int x = 0 ; x < (hold_number- (MAX_PRINT_SIZE - temp_index -1 )); x++){
+						for (int x = 0 ; x < (precision- (MAX_PRINT_SIZE - temp_index -1 )); x++){
 							buff_container[formatted_ind] = '0';
 							formatted_ind++;
 						}
@@ -147,14 +147,14 @@ void printf(char *string,...) {
 
 				// Handle width and negative flag
 				if (sp_index > 1){
-					if(flag == '0' && flag_nega == 1){
+					if(flag == '0' && is_negative == 1){
 						buffer[buffer_index] ='-';
 						buffer_index++;
 					}
 
 					if(width != 0 && width > formatted_ind){
 
-						for(int w = 0 ; w < (width - formatted_ind - flag_nega); w++){
+						for(int w = 0 ; w < (width - formatted_ind - is_negative); w++){
 							if(flag == '0' && end == -1){ 
 								buffer[buffer_index] ='0';
 							}
@@ -165,7 +165,7 @@ void printf(char *string,...) {
 						}
 					}
 					
-					if(flag != '0' && flag_nega == 1){
+					if(flag != '0' && is_negative == 1){
 						buffer[buffer_index] ='-';
 						buffer_index++;
 					}
@@ -191,7 +191,7 @@ void printf(char *string,...) {
 
 				// Add leading zeros for precision
 				if(end != -1 ){
-					for (int i = 0; i < hold_number-(MAX_PRINT_SIZE -temp_index  -1 ) ; i++){
+					for (int i = 0; i < precision-(MAX_PRINT_SIZE -temp_index  -1 ) ; i++){
 						buff_container[formatted_ind] = '0';
 						formatted_ind++;
 					}
@@ -226,7 +226,7 @@ void printf(char *string,...) {
 				int pre_counter = 0;
 				// Copy characters from string up to precision or end
 				while(*s != '\0'){
-					if(pre_counter == hold_number && end != -1){
+					if(pre_counter == precision && end != -1){
 						break;
 					}
 					buff_container[formatted_ind] = *s;
@@ -261,7 +261,7 @@ void printf(char *string,...) {
 				// Handle width
 				if (sp_index > 1){
 					if(width != 0){
-						for (int w = 0 ; w < (width - formatted_ind - flag_nega); w++){
+						for (int w = 0 ; w < (width - formatted_ind - is_negative); w++){
 							buffer[buffer_index] =' ';
 							buffer_index++;
 						}
@@ -279,15 +279,15 @@ void printf(char *string,...) {
 			else if (buff_specifier[sp_index - 1]  == 'f') {
 				double x = va_arg(ap, double);
 				int temp_index = MAX_PRINT_SIZE - 1;
-				int pow_int = end == -1 ? 6 : hold_number;
+				int pow_int = end == -1 ? 6 : precision;
 
 				if(x < 0){
-					flag_nega = 1;
+					is_negative = 1;
 					x *= (-1);
 				}
 
 				// Handle different cases for formatting floating-point numbers
-				if (end > -1 && hold_number == 0){
+				if (end > -1 && precision == 0){
 					int x_int = (x + 0.5)*1;
 					x_int = x_int/1;
 					do {
@@ -296,18 +296,14 @@ void printf(char *string,...) {
 						x_int /= 10;
 					} while(x_int != 0);
 				}
-				else{
+				else {
 					int dec_1 = (int)x;
-
-					
 					double fl = x - (double) dec_1 ;
-
 					double temp =(double)(fl * (double)power(10,pow_int));
 
 					int fl_int = (temp + 0.5)*1;
 					fl_int = fl_int/1;
 
-					
 					for (int i = 0;i < pow_int; i++){
 						int division = fl_int % 10;
 						buff_tmp[temp_index] = division + '0';
@@ -332,13 +328,13 @@ void printf(char *string,...) {
 
 				// Handle width and negative flag
 				if (sp_index > 1){
-					if(flag == '0' && flag_nega == 1){
+					if(flag == '0' && is_negative == 1){
 						buffer[buffer_index] ='-';
 						buffer_index++;
 					}
 
 					if(width != 0 && width > formatted_ind){
-						for(int w = 0 ; w < (width - formatted_ind - flag_nega); w++){
+						for(int w = 0 ; w < (width - formatted_ind - is_negative); w++){
 							if(flag == '0'){
 								buffer[buffer_index] ='0';
 							}
@@ -350,7 +346,7 @@ void printf(char *string,...) {
 					}
 				}
 				
-				if(flag != '0' && flag_nega == 1){
+				if(flag != '0' && is_negative == 1){
 					buffer[buffer_index] ='-';
 					buffer_index++;
 				}
