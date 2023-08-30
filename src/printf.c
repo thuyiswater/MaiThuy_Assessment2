@@ -3,37 +3,41 @@
 
 #define MAX_PRINT_SIZE 256
 
-void rst_buff(char *ar) {
-	int n = 0;
-	while(ar[n] != '\0') {
-		ar[n] = '\0';
-		n++;
+// Reset buffer by filling it with null terminators
+void rst_buff(char* ar){
+	int i = 0;
+	while(ar[i] != '\0') {
+		ar[i] = '\0';
+		i++;
 	}
 }
 
-void specifiers(int *index, char *str, char *arr) {
-	char container[] = {'c', 'd', 's', 'x', '%', 'f'};
+// Extract specifier from the format string
+void container(int* i, char* str, char* ar){
+	char specifiers[] = {'c', 'd', 's', 'x','%','f'};
 
-	while(*str != '\n' && *str != ' ') {
+
+	while(*str != '\n' && *str != ' '){
 		str++;
-		*arr = *str;
-		arr++;
-		*index = index + 1;
+		*ar = *str;
+		ar++;
+		*i = *i + 1;
 
-		for(int i = 0; i < 6; i++){
-			if(*str == container[i]) {
+		for(int i = 0 ; i < 6; i++){
+			if(*str == specifiers[i]){
 				return;
 			}
 		}
 	}
 }
 
-int power(int base_num, int exponent) {
-	int pow = base_num;
-	for(int i = 1; i < exponent; i++) {
-		pow *= base_num;
+// Calculate power of a number
+int power(int base_num , int exp){
+	int exponent = base_num;
+	for (int i = 1; i < exp; i++){
+		exponent *= base_num;
 	}
-	return pow;
+	return exponent;
 }
 
 void printf(char *string,...) {
@@ -44,8 +48,9 @@ void printf(char *string,...) {
 	char buffer[MAX_PRINT_SIZE];
 	int buffer_index = 0;
 	char buff_container[MAX_PRINT_SIZE];
+	char buff_tmp[MAX_PRINT_SIZE];
+
 	char buff_specifier[MAX_PRINT_SIZE];
-	char temp_buffer[MAX_PRINT_SIZE];
 
 	rst_buff(buffer);
 	rst_buff(buff_specifier);
@@ -55,280 +60,319 @@ void printf(char *string,...) {
 			break;
 
 		if (*string == '%') {
+			// Handle literal %% (single % character)
 			if(*(string + 1) == '%'){
 				string++;
-				while(*string != ' ' && *string != '\0') {
+				while(*string != ' ' && *string != '\0'){
 					buffer[buffer_index] = *string;
 					buffer_index++;
 					string++;
 				}
 				continue;
 			}
+			int sp_index = 0 ;
+			container(&sp_index, string, buff_specifier);
+			string += (sp_index +1 );
 
-			int specifier = 0;
-			specifiers(&specifier, string, buff_specifier);
-			string += (specifier + 1);
-			
-			int ind_holder = 0;
+			int formatted_ind = 0;
 			int end = -1; 
 			int hold_number = 0;
-			int n = 0;
-			int negative_sign = 0;
+			int i = 0 ;
+			int flag_nega = 0;
 
-			while(n < (specifier - 1)) {
-				if(buff_specifier[n] == '.') {
-					end = n;
-					n++;
-					while(('0' <= buff_specifier[n] && buff_specifier[n] <= 9) 
-					&& n < (specifier - 1)) {
-						hold_number = hold_number == 0 ? (buff_specifier[n] -48) : hold_number * 10 +(buff_specifier[n] -48);
-						n++;
+			// Extract decimal precision and width from specifier
+			while(i < (sp_index - 1)){
+				if(buff_specifier[i] == '.'){
+					end = i;
+					i++;
+					while(('0' <= buff_specifier[i] && buff_specifier[i] <= '9')
+						&& i < (sp_index - 1)){
+						hold_number = hold_number ==0 ? (buff_specifier[i] - 48) : hold_number*10+(buff_specifier[i] - 48);
+						i++;
 					}
 				}
-				n++;
+				i++;
 			}
 
 			char flag = 'n';
 			int width = 0;
-			n = 0;
-			int i = end == -1 ? (specifier - 1) : end;
-			
-			while(n < (i)) {
-				if(buff_specifier[n] == '0') {
+			i = 0 ;
+
+			int index = end == -1 ? (sp_index - 1) : end;
+			// Extract width and 0 flag from specifier
+			while (i < (index)){
+				
+				if (buff_specifier[i] == '0'){
 					flag = '0';
-					n++;
+					i++;
 					continue;
 				}
-
-				while(('0' <= buff_specifier[n] && buff_specifier[n] <= '9') && n <(i)) {
-					width = width == 0 ? (buff_specifier[n] - 48) : width * 10 + (buff_specifier[n] -48);
-					n++;
+				while(('0' <= buff_specifier[i] && buff_specifier[i] <= '9')
+					&& i < (index)){
+					width = width == 0? (buff_specifier[i] - 48) : width*10+ (buff_specifier[i] - 48);
+					i++;
 				}
-				n++;
+				i++;
 			}
-			//decimal number
-			if (buff_specifier[specifier] == 'd') {
+			
+			// Handle %d specifier
+			if (buff_specifier[sp_index - 1] == 'd') {
 				int x = va_arg(ap, int);
 				int temp_index = MAX_PRINT_SIZE - 1;
 
-				if(x < 0 ) {
-					negative_sign = 1;
-					x *= (-1)
+				if(x < 0){
+					flag_nega = 1;
+					x *= (-1);
 				}
 
+				// Convert decimal number to string
 				do {
-					temp_buffer[temp_index] = (x % 10) + '0';
+					buff_tmp[temp_index] = (x % 10) + '0';
 					temp_index--;
 					x /= 10;
 				} while(x != 0);
 
+				// Copy formatted number to the container
 				for(int i = temp_index + 1; i < MAX_PRINT_SIZE; i++) {
-					if(i == temp_index + 1) {
-						for(int j = 0; j < (hold_number - (MAX_PRINT_SIZE - temp_index - 1)); j++) {
-							buff_container[ind_holder] = '0';
-							ind_holder++;
+					
+					if(i == temp_index + 1){
+						for (int x = 0 ; x < (hold_number- (MAX_PRINT_SIZE - temp_index -1 )); x++){
+							buff_container[formatted_ind] = '0';
+							formatted_ind++;
 						}
 					}
-					buff_container[ind_holder] = temp_buffer[i];
-					ind_holder++;
+					buff_container[formatted_ind] = buff_tmp[i];
+					formatted_ind++;
 				}
-				if(specifier > 1) {
-					if(flag == '0' && negative_sign == 1) {
-						buffer[buffer_index] = '-';
+
+				// Handle width and negative flag
+				if (sp_index > 1){
+					if(flag == '0' && flag_nega == 1){
+						buffer[buffer_index] ='-';
 						buffer_index++;
 					}
-					if(width != 0 && width > ind_holder) {
-						for(int i = 0; i < (width - ind_holder - negative_sign); i++) {
-							if(flag == '0' && end = -1) {
-								buffer[buffer_index] '0';
+
+					if(width != 0 && width > formatted_ind){
+
+						for(int w = 0 ; w < (width - formatted_ind - flag_nega); w++){
+							if(flag == '0' && end == -1){ 
+								buffer[buffer_index] ='0';
 							}
-							else {
-								buffer[buffer_index] = ' ';
+							else{
+								buffer[buffer_index] =' ';
 							}
 							buffer_index++;
 						}
 					}
-					if(flag != '0' && negative_sign == 1) {
-						buffer[buffer_index] = '-';
+					
+					if(flag != '0' && flag_nega == 1){
+						buffer[buffer_index] ='-';
 						buffer_index++;
 					}
 				}
 
-				for(int i = 0; i < ind_holder;i++) {
+				// Copy formatted number from the container to the buffer
+				for(int i = 0 ; i < formatted_ind; i++) {
 					buffer[buffer_index] = buff_container[i];
 					buffer_index++;
 				}
 			}
-			else if (buff_specifier[specifier - 1] == 'x' || buff_specifier[specifier - 1 == 'X']) {
+			// Handle %x specifier
+			else if (buff_specifier[sp_index - 1]  == 'x'){
 				int x = va_arg(ap, int);
 				int temp_index = MAX_PRINT_SIZE - 1;
 
+				// Convert integer to hexadecimal
 				do {
-					temp_buffer[temp_index] = (x % 16) < 10 ? (x % 16) + 48 : (x % 16) + 55;
+					buff_tmp[temp_index] = (x % 16)<10 ? (x%16)+48 : (x%16)+55;
 					temp_index--;
 					x /= 16;
-				} while (x != 0);
+				} while(x != 0);
 
-				if(end != -1) {
-					for(int i = 0; i < hold_number - (MAX_PRINT_SIZE - temp_index - 1); i++) {
-						buff_container[ind_holder] = '0';
-						ind_holder++;
+				// Add leading zeros for precision
+				if(end != -1 ){
+					for (int i = 0; i < hold_number-(MAX_PRINT_SIZE -temp_index  -1 ) ; i++){
+						buff_container[formatted_ind] = '0';
+						formatted_ind++;
 					}
 				}
 
-				for(int i = temp_index+ 1 ; i < MAX_PRINT_SIZE; i++) {
-					buff_container[ind_holder] = temp_buffer[i];
-					ind_holder++;
+				// Copy formatted hexadecimal number to the container
+				for(int i = temp_index + 1; i < MAX_PRINT_SIZE; i++) {
+					buff_container[formatted_ind] = buff_tmp[i];
+					formatted_ind++;
 				}
 
-				if (specifier > 1) {
-					if(width != 0 && width > ind_holder) {
-						for(int i = 0; (i < width - ind_holder); i++) {
-							buffer[buffer_index] = ' ';
+				// Handle width
+				if (sp_index > 1){
+					if(width != 0 && width > formatted_ind){
+						for (int w = 0 ; (w < width - formatted_ind); w++){
+							buffer[buffer_index] =' ';
 							buffer_index++;
 						}
 					}
 				}
 
-				for(int i = 0; i < ind_holder; i++) {
+				 // Copy formatted number from the container to the buffer
+				for(int i = 0 ; i < formatted_ind ; i++) {
 					buffer[buffer_index] = buff_container[i];
 					buffer_index++;
 				}
+
 			}
-			else if(buff_specifier[specifier - 1] == 's') {
-				char *str = va_arg(ap, char *);
-				int count = 0;
-				while(*str != '\0') {
-					if(count == hold_number && end != -1) {
+			// Handle %s specifier
+			else if (buff_specifier[sp_index - 1]  == 's'){
+				char* s = va_arg( ap,  char *  );
+				int pre_counter = 0;
+				// Copy characters from string up to precision or end
+				while(*s != '\0'){
+					if(pre_counter == hold_number && end != -1){
 						break;
 					}
-					buff_container[ind_holder] = *str;
-					*str++;
-					ind_holder++;
-					count++;
+					buff_container[formatted_ind] = *s;
+					s++;
+					formatted_ind++;
+					pre_counter++;
 				}
 
-				if(specifier > 1) {
-					if(width != 0 && width > ind_holder) {
-						for(int i = 0; i < width; i++) {
-							buffer[buffer_index] = ' ';
+				// Handle width
+				if (sp_index > 1){
+					if(width != 0 && width > formatted_ind){
+						for (int w = 0 ; w < width; w++){
+							buffer[buffer_index] =' ';
 							buffer_index++;
 						}
 					}
 				}
-				for(int i = 0; i < ind_holder; i++) {
+				
+				// Copy formatted characters from the container to the buffer
+				for(int i = 0 ; i < formatted_ind; i++) {
 					buffer[buffer_index] = buff_container[i];
 					buffer_index++;
 				}
 			}
 
-			else if(buff_specifier[specifier - 1] == 'c') {
-				char c = va_arg(ap. int);
-				buff_container[ind_holder] = c;
-				ind_holder++;
+			// Handle %c specifier
+			else if (buff_specifier[sp_index - 1]  == 'c'){
+				char c = va_arg( ap, int );
+				buff_container[formatted_ind] = c ;
+				formatted_ind++;
 
-				if(specifier > 1) {
-					if(width != 0) {
-						for(int i = 0; i < (width - ind_holder - negative_sign); i++) {
-							buffer[buffer_index] = ' ';
+				// Handle width
+				if (sp_index > 1){
+					if(width != 0){
+						for (int w = 0 ; w < (width - formatted_ind - flag_nega); w++){
+							buffer[buffer_index] =' ';
 							buffer_index++;
 						}
 					}
 				}
 
-				for(int i = 0; i < ind_holder; i++) {
+				// Copy formatted character from the container to the buffer
+				for(int i = 0 ; i < formatted_ind; i++) {
 					buffer[buffer_index] = buff_container[i];
 					buffer_index++;
 				}
 			}
 
-			else if(buff_specifier[specifier - 1] == 'f') {
-				double f = va_arg(ap, double);
-				int tmp = MAX_PRINT_SIZE - 1;
+			// Handle %f specifier
+			else if (buff_specifier[sp_index - 1]  == 'f') {
+				double x = va_arg(ap, double);
+				int temp_index = MAX_PRINT_SIZE - 1;
 				int pow_int = end == -1 ? 6 : hold_number;
 
-				if(f < 0) {
-					negative_sign = 1;
-					f *= (-1);
+				if(x < 0){
+					flag_nega = 1;
+					x *= (-1);
 				}
 
-				if(end > -1 && hold_number == 0) {
-					int f_int = (f + 0.5) * 1;
-					f_int = f_int / 1;
+				// Handle different cases for formatting floating-point numbers
+				if (end > -1 && hold_number == 0){
+					int x_int = (x + 0.5)*1;
+					x_int = x_int/1;
 					do {
-						temp_buffer[tmp] = (f_int % 10) + '0';
-						tmp--;
-						f_int /= 10;
-					} while(f_int != 0);
+						buff_tmp[temp_index] = (x_int % 10) + '0';
+						temp_index--;
+						x_int /= 10;
+					} while(x_int != 0);
 				}
-				else {
-					int decimal = (int)f;
-					double fl = f - (double) decimal;
-					double temp = (double)(fl * (double)power(10, pow_int));
+				else{
+					int dec_1 = (int)x;
 
-					int fl_int = (temp + 0.5) * 1;
-					fl_int = fl_int / 1;
+					
+					double fl = x - (double) dec_1 ;
 
-					for(int i = 0; i < pow_int; i++) {
-						int div = fl_int % 10;
-						temp_buffer [tmp] = div + '0';
-						tmp--;
+					double temp =(double)(fl * (double)power(10,pow_int));
+
+					int fl_int = (temp + 0.5)*1;
+					fl_int = fl_int/1;
+
+					
+					for (int i = 0;i < pow_int; i++){
+						int division = fl_int % 10;
+						buff_tmp[temp_index] = division + '0';
+						temp_index--;
 						fl_int /= 10;
 					}
 
-					temp_buffer[tmp] = '.';
-					tmp--;
-
+					buff_tmp[temp_index] = '.'; temp_index--;
 					do {
-						temp_buffer[tmp] = (decimal % 10) + '0';
-						tmp--;
-						decimal /= 10;
-					} while(decimal != 0);
+						buff_tmp[temp_index] = (dec_1 % 10) + '0';
+						temp_index--;
+						dec_1 /= 10;
+					} while(dec_1 != 0);
 				}
 
-				for(int i = tmp + 1; i < MAX_PRINT_SIZE; i++) {
-					buff_container[ind_holder] = temp_buffer[i];
-					ind_holder++;
+				// Copy formatted floating-point number to the container
+				for(int i = temp_index + 1; i < MAX_PRINT_SIZE; i++) {
+					
+					buff_container[formatted_ind] = buff_tmp[i];
+					formatted_ind++;
 				}
 
-				if(specifier > 1) {
-					if(flag == '0' && negative_sign == 1) {
-						buffer[buffer_index] = '-';
+				// Handle width and negative flag
+				if (sp_index > 1){
+					if(flag == '0' && flag_nega == 1){
+						buffer[buffer_index] ='-';
 						buffer_index++;
 					}
 
-					if(width != 0 && width > ind_holder) {
-						for(width != 0; i < (width - ind_holder - negative_sign); i++) {
-							if(flag == '0') {
-								buffer[buffer_index] = '0';
+					if(width != 0 && width > formatted_ind){
+						for(int w = 0 ; w < (width - formatted_ind - flag_nega); w++){
+							if(flag == '0'){
+								buffer[buffer_index] ='0';
 							}
-							else {
-								buffer[buffer_index] = ' ';
+							else{
+								buffer[buffer_index] =' ';
 							}
 							buffer_index++;
 						}
 					}
 				}
-
-				if(flag != '0' && negative_sign == 1) {
-					buffer[buffer_index] = '-';
+				
+				if(flag != '0' && flag_nega == 1){
+					buffer[buffer_index] ='-';
 					buffer_index++;
 				}
 
-				for(int i = 0; i < ind_holder; i++) {
+				// Copy formatted number from the container to the buffer
+				for(int i = 0 ; i < formatted_ind; i++) {
 					buffer[buffer_index] = buff_container[i];
 					buffer_index++;
 				}
 			}
-			else {
+
+			// Handle unknown specifier by appending it to the buffer
+			else{
 				buffer[buffer_index] = buff_specifier[i];
 				buffer_index++;
-				for(int i = 0; i < specifier; i++) {
+				for(int i = 0; i < sp_index; i++){
 					buffer[buffer_index] = buff_specifier[i];
 					buffer_index++;
 				}
 			}
 		}
+		// Copy character to the buffer
 		else {
 			buffer[buffer_index] = *string;
 			buffer_index++;
@@ -340,7 +384,6 @@ void printf(char *string,...) {
 	}
 
 	va_end(ap);
-
 
 	//Print out formated string
 	uart_puts(buffer);

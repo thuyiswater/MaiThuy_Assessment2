@@ -278,8 +278,9 @@ void addToHistory(const char *command) {
 }
 
 void print_list() {
-    printf("\n");
+   printf("\n");
+		//Print integer
 
-    //print int %d
-    printf("%d > %d\n", 10, 2);
+		printf("%d is higher than %d\n ", 6, 4);
+		printf("Hello %0d\n", 16);
 }

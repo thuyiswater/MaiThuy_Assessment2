@@ -1,11 +1,13 @@
 #include "uart.h"
 #include "function.h"
 #include "mbox.h"
+#include "printf.h"
 
 void main() {
     uart_init();
     welcome();
     uart_puts("\nthuyiswater> ");
+    // printf("%d", 10);
 
     char cli_buffer[256];
     int index = 0;
