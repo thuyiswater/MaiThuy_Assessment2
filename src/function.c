@@ -2,20 +2,7 @@
 #include "mbox.h"
 #include "printf.h"
 
-#define MAX_HISTORY_SIZE 10
-#define MAX_COMMAND_LENGTH 50
 #define MAX_INPUT_SIZE 256
-// #define NUM_COMMAND 5
-const char commands[][MAX_INPUT_SIZE] = {
-        "help",
-        "clear",
-        "setcolor",
-        "showinfo",
-        "printf"
-};
-char history[MAX_HISTORY_SIZE][MAX_COMMAND_LENGTH];
-int historyIndex = 0;
-int historyCount = 0;
 
 void reset_str(char* ar) {
     while (*ar != '\n'){
@@ -261,7 +248,7 @@ void color_arr(int color_index) {
     }
 }
 
-char* copyString(char *destination, const char *source, int maxSize) {
+char* copynString(char *destination, const char *source, int maxSize) {
     char *origin = destination;
 
     while(maxSize > 0 && *source != '\0') {
@@ -283,54 +270,25 @@ int count_length(char *s) {
     }
     return n;
 }
-// int compare_length(char *str1, char str *str2) {
-//     int length1 = count_length(str1);
-//     int length2 = count_length(str2);
 
-//     int similar_len = length1 > length2 ? length2 : length1;
-//     int match = 0;
+void strcpy(char *dest, const char *src) {
+    while (*src != '\0') {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+    *dest = '\0';  // Don't forget to add the null-terminator
+}
 
-//     for(int i = 0; i < similar_len; i++) {
-//         if(str1[i] == str2) {
-//             match++;
-//         }
-//     }
-//     return (int) match / similar_len * 100.0;
-// }
-
-// int tab_completion(char *cmd) {
-//     int n = 0;
-//     int match = -1;
-
-//     for(int i = 0; i < 5; i++) {
-//         int compare_match = compare_length(cmd, commands[i]);
-//         if(compare_match == 100) {
-//             n = compare_match
-//         }
-//     }
-// }
-
-void addToHistory(const char *command) {
-    if (historyCount < MAX_HISTORY_SIZE) {
-        for (int i = 0; i < MAX_COMMAND_LENGTH; i++) {
-            history[historyCount][i] = command[i];
-            if (command[i] == '\0') {
-                break;
-            }
-        }
-        historyCount++;
-    } else {
-        for (int i = 0; i < MAX_HISTORY_SIZE - 1; i++) {
-            for (int j = 0; j < MAX_COMMAND_LENGTH; j++) {
-                history[i][j] = history[i + 1][j];
-            }
-        }
-        for (int i = 0; i < MAX_COMMAND_LENGTH; i++) {
-            history[MAX_HISTORY_SIZE - 1][i] = command[i];
-            if (command[i] == '\0') {
-                break;
-            }
-        }
+void clear_cli(int length) {
+    for(int i = 0; i < length; i++) {
+        uart_sendc('\b');
+    }
+    for(int i = 0; i < length; i++) {
+        uart_sendc(' ');
+    }
+    for(int i = 0; i < length; i++) {
+        uart_sendc('\b');
     }
 }
 
