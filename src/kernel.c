@@ -14,23 +14,45 @@ int arr_index = 0;
 
 void reset_arr(char* arr){
     for (int i = 0; i < INPUT_MAX_SIZE; i++) {
-        arr[i] = '\0'; // Fill buffer with null terminators
+        arr[i] = '\0'; //fill buffer with null terminators
     }
 }
 
 void main() {
     uart_init();
+    uart_puts("\n");
     welcome();
-    uart_puts("\nthuyiswater> ");
+    uart_puts("\n");
 
     char cli_buffer[INPUT_MAX_SIZE];
     int index = 0;
+    
+    unsigned int *physize = 0; // Pointer to response data
+    unsigned int *get_model = 0;
+    unsigned int *get_serial = 0;
+    unsigned int *mac_addr = 0;
+    unsigned int *clock_rate = 0;
 
+    mbox_buffer_setup(ADDR(mBuf), MBOX_TAG_GETMODEL, &get_model, 4, 0, 0);
+
+    mbox_buffer_setup(ADDR(mBuf), MBOX_TAG_GETSERIAL, &get_serial, 8, 0, 0);
+
+    mbox_buffer_setup(ADDR(mBuf), MBOX_TAG_GETMACADD, &mac_addr, 6, 0, 0);
+
+    mbox_buffer_setup(ADDR(mBuf), MBOX_TAG_SETCLKRATE, &clock_rate, 6, 0, 0);
+
+    mbox_buffer_setup(ADDR(mBuf), MBOX_TAG_SETPHYWH, &physize, 8,0,1024,768);
+    uart_puts("\nGot Actual Physical Width: ");
+    uart_dec(physize[0]);
+    uart_puts("\nGot Actual Physical Height: ");
+    uart_dec(physize[1]);
+
+    uart_puts("\n\nthuyiswater> ");
     while (1) {
         char c = uart_getc();
         uart_sendc(c);
 
-        // Handle backspace and delete character
+        //handle backspace and delete character
         if (c == '\b' || c == '\177') {  
             if (index > 0) {
                 index--;
@@ -39,7 +61,7 @@ void main() {
                 uart_sendc('\b');
             }
         }
-        //Handle tab for auto completion
+        //handle tab for auto completion
         else if(c == '\t') {
             cli_buffer[index] = '\0';
 
@@ -115,6 +137,7 @@ void main() {
                 uart_puts(cli_buffer);
             }
         }
+        //handle user choosing command from history
         else if(c == '_' || c == '+') {
             cli_buffer[index] = '\0';
             index = 0;
@@ -133,6 +156,7 @@ void main() {
                 history_index = arr_index - 1;
             }
 
+            //clear and print out the command from history array
             if(history_index >= 0 && history_index < arr_index) {
                 strcpy(cli_buffer, command_history[history_index]);
                 clear_cli(20 + count_length(cli_buffer));
@@ -146,6 +170,7 @@ void main() {
             int n = 0;
             char help[] = "help", clear[] = "clear";
             
+            //add command to history array everytime user hit enter button
             copynString(command_history[arr_index], cli_buffer, INPUT_MAX_SIZE - 1);
             command_history[arr_index][INPUT_MAX_SIZE - 1] = '\0';
             arr_index++;
@@ -153,24 +178,29 @@ void main() {
                 arr_index = MAX_COMMAND_HISTORY;
             }
             history_index = arr_index - 1;
-
+            //help menu
             if (compare_cli(cli_buffer, help) == 0) {
                 execute_command();
             }
+            //help with full information of the command
             else if(check_help(cli_buffer) >= 0) {
                 help_info(check_help(cli_buffer));
             }
+            //clear cli
             else if(compare_cli(cli_buffer,clear) == 0) {
                 uart_puts("\033[2J");
                 uart_puts("\033[H");
             } 
+            //show information
             else if(compare_cli(cli_buffer,"showinfo") == 0) {
                 board_revision();
                 board_mac_address();
             }
+            //printf function
             else if(compare_cli(cli_buffer, "printlist") == 0) {
                 print_list();
             }
+            //set color for text and background
             else {
                 cli_buffer[index] = c;
                 if(compare_input_color(cli_buffer, "setcolor", &n) == 0) {
@@ -187,16 +217,17 @@ void main() {
 					uart_puts("Wrong command");
 				}
             }
+            //cear buffer for user to type next command
             reset_arr(cli_buffer);
             uart_puts("\nthuyiswater> ");
             index = 0;
         } 
         else {  // Handle regular character input
-            if (c >= 64 && c <= 91) //or if(str[i]>='A' && str[i]<='Z')
-				      c += 32;
-				//add input to the char
-				cli_buffer[index]=c;
-				index++;
+            if (c >= 64 && c <= 91)
+				c += 32;
+            //add input to the char
+            cli_buffer[index]=c;
+            index++;
         }
     }
 }

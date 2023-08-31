@@ -2,6 +2,7 @@
 #include "mbox.h"
 #include "gpio.h"
 #include "uart.h"
+#include "printf.h"
 /* Mailbox Data Buffer (each element is 32-bit)*/
 /*
  * The keyword attribute allows you to specify special attributes
@@ -46,6 +47,7 @@ void board_mac_address() {
     mBuf[2] = MBOX_TAG_GETMACADD;
     mBuf[3] = 6;
     mBuf[4] = 0;
+    mBuf[5] = 0;
     mBuf[6] = MBOX_TAG_LAST;
 
     if(mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
@@ -56,10 +58,105 @@ void board_mac_address() {
     }
 }
 
-// void mbox_buffer_setup(unsigned int buffer_addr, unsigned int tag_identifier, unsigned int **res_data, unsigned int res_length, unsigned int req_length, unsigned int [list of request values])
+void mbox_buffer_setup(unsigned int buffer_addr, 
+unsigned int tag_identifier, 
+unsigned int **res_data, 
+unsigned int res_length, 
+unsigned int req_length, ...) {
 
-uint32_t mailbox_read(unsigned char channel)
-{
+    // Set up the header of the message
+    mBuf[0] = 17*4;
+    mBuf[1] = 0;                  // Request/response code
+    mBuf[2] = tag_identifier;     // Tag identifier
+
+    va_list args;
+    va_start(args, req_length);
+
+    for (unsigned int i = 0; i < req_length >>2; i++) {
+        mBuf[3 + i] = va_arg(args, unsigned int); // Copy request values
+    }
+    va_end(args);
+
+    //set the res_data pointer to point to the response data
+    *res_data = mBuf + 5;
+
+    switch(tag_identifier) {
+        case MBOX_TAG_GETMODEL:
+            // mailbox data buffer: Read ARM frequency
+            mBuf[3] = 4;  // Value buffer size in bytes (max of request and response lengths)
+            mBuf[4] = 0;			   // REQUEST CODE = 0
+            mBuf[5] = 0;                // clear output buffer (response data are mBuf[5])
+            mBuf[6] = MBOX_TAG_LAST;
+            if (mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
+                uart_puts("Board Model:  ");
+                uart_hex(mBuf[5]);
+                uart_puts("\n\n");
+
+            }
+            else {
+                uart_puts("INVALID!\n");
+            }
+            break;
+        case MBOX_TAG_SETPHYWH:
+            mBuf[3] = 8;     // Value buffer size in bytes
+            mBuf[4] = 0;     // Length of request values in bytes
+            mBuf[5] = va_arg(args, unsigned int);    //width
+            mBuf[6] = va_arg(args, unsigned int);    //height
+            mBuf[7] = MBOX_TAG_LAST;
+            break;
+        case MBOX_TAG_GETSERIAL:
+            mBuf[3] = 8;
+            mBuf[4] = 0;
+            mBuf[5] = 0;
+            mBuf[6] = MBOX_TAG_LAST;
+
+            if (mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
+                uart_puts("Board Serial:  ");
+                uart_hex(mBuf[5]);
+                uart_puts("\n\n");
+            } 
+            else {
+                uart_puts("INVALID!\n");
+            }
+            break;
+        case MBOX_TAG_GETMACADD: 
+            mBuf[3] = 6;
+            mBuf[4] = 0;
+            mBuf[5] = 0;
+            mBuf[6] = MBOX_TAG_LAST;
+
+            if (mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
+                uart_puts("Board MAC Address: ");
+                uart_hex(mBuf[5]);
+                uart_puts("\n\n");
+            } 
+            else {
+                uart_puts("INVALID!\n");
+            }
+            break;
+        case MBOX_TAG_SETCLKRATE:
+            mBuf[2] = 0x00030002;
+            mBuf[3] = 8;
+            mBuf[4] = 0;
+            mBuf[5] = 3;
+            mBuf[6] = 0;
+            mBuf[7] = MBOX_TAG_LAST;
+
+            if (mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
+                uart_puts("ARM frequency clock rate: ");
+                uart_dec(mBuf[6]);
+                uart_puts("\n\n");
+            } 
+            else {
+                uart_puts("INVALID!\n");
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+uint32_t mailbox_read(unsigned char channel) {
     // Receiving message is buffer_addr & channel number
     uint32_t res;
     // Make sure that the message is from the right channel

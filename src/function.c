@@ -4,12 +4,14 @@
 
 #define MAX_INPUT_SIZE 256
 
+//reset pointer for comapre
 void reset_str(char* ar) {
     while (*ar != '\n'){
         ar++;
     }
 }
 
+//welcome view
 void welcome() {
     uart_puts("d88888b d88888b d88888b d888888b .d888b.   j88D  .d888b.  .d88b.\n");
     uart_puts("88'     88'     88'     `~~88~~' VP  `8D  j8~88  88' `8D .8P  88.\n");
@@ -28,6 +30,7 @@ void welcome() {
     uart_puts("\tDeveloped by Thuy - s3877746\n\n");
 }
 
+//compare input from user if it in correct syntax
 int compare_cli(char* str1, char* str2) {
     int flag = 0;
 
@@ -40,10 +43,11 @@ int compare_cli(char* str1, char* str2) {
             break;
         }
     }
-    reset_str(str1);  // Reset the pointer here
+    reset_str(str1);  //reset the pointer here
     return flag;
 }
 
+//help menu
 void execute_command() {
     uart_puts("\n\n");
     uart_puts("help                      - Show brief information of all commands\n");
@@ -59,6 +63,7 @@ void execute_command() {
     uart_puts("                          - Example: MyOS> showinfo\n");
 }
 
+//check help command to show full info
 int check_help(char* ar) {
     int n = -1;
     char *list[] = {"help help",
@@ -76,6 +81,7 @@ int check_help(char* ar) {
     return n;
 }
 
+//full info of each command
 void help_info(int help_type) {
     if(help_type == 0) {
         uart_puts("\nCommand: help\n");
@@ -105,13 +111,17 @@ void help_info(int help_type) {
     }
 } 
 
+//compare input color against the expected color string 
+//and track the number of matching characters
 int compare_input_color(char *str1, char *str2, int *clAr) {
     int flag = 0;
+    //if match, increase the clAR counter
     while(*str2 != '\0') {
         if(*str1 == *str2) {
             *clAr = *clAr + 1;
             str1++; str2++;
         }
+        //if not match, reset the pointer
         else {
             flag = 2;
             reset_str(str1);
@@ -122,6 +132,8 @@ int compare_input_color(char *str1, char *str2, int *clAr) {
     return flag;
 }
 
+//compare two color strings
+//returning a flag indicating if they match or not
 int compare_color(char* str1, char* str2) {
     int i = 0;
     int flag = 0;
@@ -137,12 +149,13 @@ int compare_color(char* str1, char* str2) {
     return flag;
 }
 
+//get the color set based on the input string
 int get_colorset(char* str1) {
     str1++;
     int flag = 0;
 
     if(*str1 == '\n') {
-        flag = -1;
+        flag = -1; //indicates end of input
         return flag;
     }
 
@@ -150,6 +163,7 @@ int get_colorset(char* str1) {
         str1++;
         int color = -1;
 
+        //iterate through color options and determine the color index
         for(int i = 0; i <= 8; i++) {
             if (compare_color(str1,"black") == 0){
                 color = 0;
@@ -169,19 +183,21 @@ int get_colorset(char* str1) {
                 color = 7;
             }
         }
-        return color;
+        return color; //return the color index
     } else {
-        flag = -1;
+        flag = -1; //invalid input
         return flag;
     }
 }
 
+//set color according to the input
 int set_color (char* str) {
     int flag = -1;
 
     while(*str != '\0') {
         if(*str == '-') {
             str++;
+            //handle background color
             if(*str == 'b') {
                 int color = get_colorset(str);
                 if(color < 0) {
@@ -195,7 +211,9 @@ int set_color (char* str) {
                         flag = flag + color;
                     }
                 }
-            } else if (*str == 't') {
+            } 
+            //handle text color
+            else if (*str == 't') {
                 int color = get_colorset(str);
                 if(color < 0) {
                     return -1;
@@ -277,7 +295,7 @@ void strcpy(char *dest, const char *src) {
         dest++;
         src++;
     }
-    *dest = '\0';  // Don't forget to add the null-terminator
+    *dest = '\0';  //add the null-terminator
 }
 
 void clear_cli(int length) {
@@ -294,32 +312,31 @@ void clear_cli(int length) {
 
 void print_list() {
    printf("\n");
-		//Print integer
-
+		//print integer
 		printf("%d is higher than %d\n ", 6, 4);
 		printf("Hello %0d\n", 16);
 
-        //Print character
+        //print character
 		printf("\nCharacter: %c\n", 'd');
 
 		//print hex
 		printf("\nHex number: %x\n", 921);
-		printf("Hex number: %d\n", -156);
-		printf("Hex number: %d\n", -46.67);
+		printf("Hex number: %d\n", -200);
+		printf("Hex number: %d\n", -24.17);
 
 		//print float
-		printf("\nFloat number: %f\n", 44667.00076004);
+		printf("\nFloat number: %f\n", 87857.3984756);
 
 		//float and flag and precision and width
-		printf("Float number: %10.3f\n", 67.5 );
-		printf("Float number: %10.3f\n", -67.5 );
+		printf("Float number: %10.3f\n", 35.8 );
+		printf("Float number: %10.3f\n", -35.8 );
 
 		//Print string and flag and width
 		printf("\nString: %s\n", "thuyiswater");
 
-		//Print hexadecimal and flag and width
-		printf ("\nHex number: %x \n", 7562);
+		//print hexadecimal and flag and width
+		printf ("\nHex number: %x \n", 1284);
 
 		//print %
-		printf ("\nUsing %%f: %f\n", 1234.56789);
+		printf ("\nUsing %%f: %f\n", 987.654321);
 }

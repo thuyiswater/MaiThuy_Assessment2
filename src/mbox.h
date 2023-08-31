@@ -35,14 +35,21 @@ extern volatile unsigned int mBuf[36];
 #define MBOX_CH_TOUCH 6 //Touch screen
 #define MBOX_CH_PROP 8 //Property tags (ARM -> VC)
 /* tags */
+#define MBOX_TAG_SETPHYWH 0x48003 //get physical width/height
+#define MBOX_TAG_GETPHYWH 0x40003 //get physical width/height
 #define MBOX_TAG_GETSERIAL 0x00010004 //Get board serial
 #define MBOX_TAG_GETMODEL 0x00010001 //Get board model
 #define MBOX_TAG_GETMACADD 0x00010003 //Get board MAC ADDRESS
 #define MBOX_TAG_SETCLKRATE 0x00038002
 #define MBOX_TAG_LAST 0
+
 /* Function Prototypes */
 int mbox_call(unsigned int buffer_addr, unsigned char channel);
+void mbox_init();
 void board_revision();
 void board_mac_address();
+void mbox_buffer_setup(unsigned int buffer_addr, unsigned int tag_identifier,
+unsigned int **res_data, unsigned int res_length,
+unsigned int req_length, ...);
 
 #endif
